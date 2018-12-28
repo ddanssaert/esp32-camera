@@ -4,8 +4,10 @@ set(COMPONENT_SRCS
   driver/sensor.c
   driver/twi.c
   driver/xclk.c
+  driver/wiring.c
   sensors/ov2640.c
   sensors/ov7725.c
+  sensors/ov7670.c
   conversions/yuv.c
   conversions/to_jpg.cpp
   conversions/to_bmp.c

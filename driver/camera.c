@@ -40,12 +40,16 @@
 #if CONFIG_OV7725_SUPPORT
 #include "ov7725.h"
 #endif
+#if CONFIG_OV7670_SUPPORT
+#include "ov7670.h"
+#endif
 
 typedef enum {
     CAMERA_NONE = 0,
     CAMERA_UNKNOWN = 1,
     CAMERA_OV7725 = 7725,
     CAMERA_OV2640 = 2640,
+    CAMERA_OV7670 = 7670,
 } camera_model_t;
 
 #define REG_PID        0x0A
@@ -219,6 +223,7 @@ static esp_err_t camera_fb_init(size_t count)
         }
         memset(_fb2, 0, sizeof(camera_fb_int_t));
         _fb2->size = s_state->fb_size;
+	    _fb2->buf = (uint8_t*) calloc(_fb2->size, 1);
         if(s_state->config.pixel_format == PIXFORMAT_JPEG) {
             _fb2->buf = (uint8_t*) calloc(_fb2->size, 1);
         }
@@ -910,6 +915,12 @@ esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera
         ov7725_init(&s_state->sensor);
         break;
 #endif
+#if CONFIG_OV7670_SUPPORT
+    case OV7670_PID:
+        *out_camera_model = CAMERA_OV7670;
+        ov7670_init(&s_state->sensor);
+        break;
+#endif
     default:
         id->PID = 0;
         *out_camera_model = CAMERA_UNKNOWN;
@@ -1062,14 +1073,18 @@ esp_err_t camera_init(const camera_config_t* config)
         s_state->sensor.set_bpc(&s_state->sensor, false);
         s_state->sensor.set_wpc(&s_state->sensor, true);
         s_state->sensor.set_lenc(&s_state->sensor, true);
+    } else if (s_state->sensor.id.PID == OV7670_PID) {
+        s_state->sensor.set_framerate(&s_state->sensor, 0);
     }
-
     skip_frame();
     //todo: for some reason the first set of the quality does not work.
     if (pix_format == PIXFORMAT_JPEG) {
         (*s_state->sensor.set_quality)(&s_state->sensor, config->jpeg_quality);
     }
-    s_state->sensor.init_status(&s_state->sensor);
+    if (s_state->sensor.id.PID == OV2640_PID) {
+        ESP_LOGI(TAG, "Init status...");
+        s_state->sensor.init_status(&s_state->sensor);
+    }
     return ESP_OK;
 
 fail:
@@ -1087,6 +1102,13 @@ esp_err_t esp_camera_init(const camera_config_t* config)
     }
     if (camera_model == CAMERA_OV7725) {
         ESP_LOGD(TAG, "Detected OV7725 camera");
+        if(config->pixel_format == PIXFORMAT_JPEG) {
+            ESP_LOGE(TAG, "Camera does not support JPEG");
+            err = ESP_ERR_CAMERA_NOT_SUPPORTED;
+            goto fail;
+        }
+    } else if (camera_model == CAMERA_OV7670) {
+        ESP_LOGD(TAG, "Detected OV7670 camera");
         if(config->pixel_format == PIXFORMAT_JPEG) {
             ESP_LOGE(TAG, "Camera does not support JPEG");
             err = ESP_ERR_CAMERA_NOT_SUPPORTED;
