@@ -78,7 +78,9 @@ uint8_t SCCB_Write(uint8_t slv_addr, uint8_t reg, uint8_t data)
         ret=0xFF;
     }
     if (ret != 0) {
-        printf("SCCB_Write [%02x]=%02x failed\n", reg, data);
+    	ESP_LOGE(TAG, "SCCB_Write [%02x]=%02x failed", reg, data);
+    } else {
+    	ESP_LOGV(TAG, "SCCB_Write [%02x]=%02x succeeded", reg, data);
     }
     return ret;
 }
