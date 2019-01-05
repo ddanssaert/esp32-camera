@@ -1060,22 +1060,23 @@ esp_err_t camera_init(const camera_config_t* config)
 
     s_state->sensor.status.framesize = frame_size;
     s_state->sensor.pixformat = pix_format;
-    ESP_LOGD(TAG, "Setting frame size to %dx%d", s_state->width, s_state->height);
+    /*ESP_LOGD(TAG, "Setting frame size to %dx%d", s_state->width, s_state->height);
     if (s_state->sensor.set_framesize(&s_state->sensor, frame_size) != 0) {
         ESP_LOGE(TAG, "Failed to set frame size");
         err = ESP_ERR_CAMERA_FAILED_TO_SET_FRAME_SIZE;
         goto fail;
     }
     s_state->sensor.set_pixformat(&s_state->sensor, pix_format);
+    */
 
     if (s_state->sensor.id.PID == OV2640_PID) {
         s_state->sensor.set_gainceiling(&s_state->sensor, GAINCEILING_2X);
         s_state->sensor.set_bpc(&s_state->sensor, false);
         s_state->sensor.set_wpc(&s_state->sensor, true);
         s_state->sensor.set_lenc(&s_state->sensor, true);
-    } else if (s_state->sensor.id.PID == OV7670_PID) {
+    } /*else if (s_state->sensor.id.PID == OV7670_PID) {
         s_state->sensor.set_framerate(&s_state->sensor, 0);
-    }
+    } */
     skip_frame();
     //todo: for some reason the first set of the quality does not work.
     if (pix_format == PIXFORMAT_JPEG) {

@@ -74,6 +74,12 @@ uint8_t SCCB_Write(uint8_t slv_addr, uint8_t reg, uint8_t data)
     uint8_t ret=0;
     uint8_t buf[] = {reg, data};
 
+    /* HACK!!! */
+    if (reg == 0x74 || reg == 0x5f || reg == 0x6d) {
+    	ESP_LOGI(TAG, "SCCB_Write [%02x]=%02x ignored", reg, data);
+    	return -1;
+    }
+
     if(twi_writeTo(slv_addr, buf, 2, true) != 0) {
         ret=0xFF;
     }
